@@ -5,7 +5,7 @@ public class Test {
     public static void main(String[] args) {
         MyAnnotationConfigApplicationContext myAnnotationConfigApplicationContext =
                 new MyAnnotationConfigApplicationContext("top.justinchoi.mypring");
-        System.out.println(myAnnotationConfigApplicationContext.getBean("account"));
-        System.out.println(myAnnotationConfigApplicationContext.getBean("order"));
+//        System.out.println(myAnnotationConfigApplicationContext.getBean("account"));
+//        System.out.println(myAnnotationConfigApplicationContext.getBean("order"));
     }
 }
