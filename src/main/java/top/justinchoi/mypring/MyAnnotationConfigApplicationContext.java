@@ -1,5 +1,6 @@
 package top.justinchoi.mypring;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,7 +17,63 @@ public class MyAnnotationConfigApplicationContext {
         Set<BeanDefinition> beanDefinitions = findBeanDefinitions(pack);
         // 根据原材料创建bean
         creatObject(beanDefinitions);
+        // 自动装载
+        autowiredObject(beanDefinitions);
+    }
 
+    public void autowiredObject(Set<BeanDefinition> beanDefinitions){
+        Iterator<BeanDefinition> iterator = beanDefinitions.iterator();
+        while (iterator.hasNext()) {
+            BeanDefinition beanDefinition = iterator.next();
+            Class<?> clazz = beanDefinition.getBeanClass();
+            // 拿到成员方法
+            Field[] declaredFields = clazz.getDeclaredFields();
+            for (Field declaredField : declaredFields) {
+                // 遍历这些成员方法，找到添加了autowired注解的类
+                Autowired annotation = declaredField.getAnnotation(Autowired.class);
+                if (annotation != null) {
+                    Qualifier qualifier = declaredField.getAnnotation(Qualifier.class);
+                    if (qualifier != null) {
+                        // 使用name注入
+                        String beanName = qualifier.value();
+                        // Order的bean对象（需要注入的对象）
+                        Object bean = getBean(beanName);
+                        String fieldName = declaredField.getName();
+                        String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                        try {
+                            Method method = clazz.getMethod(methodName, declaredField.getType());
+                            // Account的bean对象（将order注入到Account对象中）
+                            Object object = getBean(beanDefinition.getBeanName());
+                            method.invoke(object, bean);
+                            System.out.println(bean+"---被注入到---"+object+"---中了---");
+                        } catch (NoSuchMethodException e) {
+                            throw new RuntimeException(e);
+                        } catch (InvocationTargetException e) {
+                            throw new RuntimeException(e);
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }else{
+                        // 使用type注入
+                        String fieldName = declaredField.getName();
+                        Object bean = getBean(fieldName);
+                        String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                        try {
+                            Method method = clazz.getMethod(methodName, declaredField.getType());
+                            Object object = getBean(beanDefinition.getBeanName());
+                            method.invoke(object, bean);
+                            System.out.println(bean+"---被注入到---"+object+"---中了---");
+                        } catch (NoSuchMethodException e) {
+                            throw new RuntimeException(e);
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        } catch (InvocationTargetException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public Object getBean(String beanName) {
