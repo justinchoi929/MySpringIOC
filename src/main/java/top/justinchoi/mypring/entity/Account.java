@@ -16,6 +16,6 @@ public class Account {
     private String age;
 
     @Autowired
-    @Qualifier("myOrder")
+//    @Qualifier("order")
     private Order order;
 }
